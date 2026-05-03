@@ -2,56 +2,62 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Beat Makinesi v2</title>
+    <title>Beat Makinesi - Çalışan Versiyon</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            background: #111;
+            background: #0a0a0a;
             color: white;
-            padding: 20px;
+            padding: 30px;
         }
         h1 { color: #1ed760; }
+        #startBtn {
+            font-size: 28px;
+            padding: 20px 40px;
+            margin: 20px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+        }
         .drum {
-            font-size: 40px;
-            padding: 20px;
-            margin: 8px;
-            width: 110px;
-            height: 110px;
-            border-radius: 15px;
+            font-size: 42px;
+            padding: 25px;
+            margin: 10px;
+            width: 120px;
+            height: 120px;
+            border-radius: 20px;
             cursor: pointer;
         }
         .kick { background: #ff4444; }
-        .snare { background: #ff8800; }
+        .snare { background: #ffaa00; }
         .clap { background: #ff44aa; }
-        .hihat { background: #44ddff; }
-        .ohat { background: #8888ff; }
+        .hihat { background: #44ffdd; }
+        .ohat { background: #aa88ff; }
 
-        #play {
-            font-size: 26px;
-            padding: 15px 50px;
-            margin: 15px;
-            background: #1ed760;
-            color: black;
+        #play { 
+            font-size: 24px; 
+            padding: 15px 50px; 
+            background: #1ed760; 
+            color: black; 
             border: none;
             border-radius: 50px;
+            margin: 20px;
         }
-        input[type="range"] { width: 300px; }
-        .tempo-info { font-size: 22px; margin: 10px; }
     </style>
 </head>
 <body>
     <h1>🥁 Beat Makinesi</h1>
+    <p>Önce aşağıdaki butona bas (sesi açmak için zorunlu)</p>
+    
+    <button id="startBtn">🔊 SESİ AÇ</button>
+    <br><br>
 
-    <div class="controls">
-        <button id="play">▶ PLAY / STOP</button>
-        <div class="tempo-info">
-            Tempo: <span id="tempoValue">120</span> BPM
-        </div>
-        <input type="range" id="tempo" min="60" max="180" value="120" step="1">
-    </div>
-
-    <div>
+    <button id="play" style="display:none">▶ PLAY / STOP</button>
+    
+    <div id="drums" style="display:none">
         <button class="drum kick" onclick="playDrum('kick')">KICK</button>
         <button class="drum snare" onclick="playDrum('snare')">SNARE</button>
         <button class="drum clap" onclick="playDrum('clap')">CLAP</button><br>
@@ -65,108 +71,30 @@
         let interval;
         let tempo = 120;
 
-        const tempoSlider = document.getElementById('tempo');
-        const tempoValue = document.getElementById('tempoValue');
+        const startBtn = document.getElementById('startBtn');
+        const playBtn = document.getElementById('play');
+        const drumsDiv = document.getElementById('drums');
 
-        // AudioContext'i bir kere oluştur
-        function initAudio() {
+        startBtn.addEventListener('click', () => {
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
-            if (audioContext.state === 'suspended') {
-                audioContext.resume();
-            }
-        }
+            audioContext.resume().then(() => {
+                startBtn.style.display = 'none';
+                playBtn.style.display = 'inline-block';
+                drumsDiv.style.display = 'block';
+                alert('✅ Ses açıldı! Artık butonları kullanabilirsin.');
+            });
+        });
 
         function playDrum(type) {
-            initAudio();   // her seferinde kontrol et
+            if (!audioContext) return;
 
+            const now = audioContext.currentTime;
             const osc = audioContext.createOscillator();
             const gain = audioContext.createGain();
 
             switch(type) {
                 case 'kick':
-                    osc.frequency.setValueAtTime(140, audioContext.currentTime);
-                    gain.gain.value = 1.2;
-                    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
-                    osc.start();
-                    osc.stop(audioContext.currentTime + 0.5);
-                    break;
-
-                case 'snare':
-                    osc.frequency.setValueAtTime(600, audioContext.currentTime);
-                    gain.gain.value = 0.8;
-                    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
-                    osc.start();
-                    osc.stop(audioContext.currentTime + 0.2);
-                    break;
-
-                case 'clap':
-                    osc.frequency.setValueAtTime(800, audioContext.currentTime);
-                    gain.gain.value = 0.6;
-                    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.15);
-                    osc.start();
-                    osc.stop(audioContext.currentTime + 0.15);
-                    break;
-
-                case 'hihat':
-                    osc.frequency.setValueAtTime(7000, audioContext.currentTime);
-                    gain.gain.value = 0.4;
-                    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.08);
-                    osc.start();
-                    osc.stop(audioContext.currentTime + 0.08);
-                    break;
-
-                case 'ohat':
-                    osc.frequency.setValueAtTime(4500, audioContext.currentTime);
-                    gain.gain.value = 0.35;
-                    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.35);
-                    osc.start();
-                    osc.stop(audioContext.currentTime + 0.35);
-                    break;
-            }
-        }
-
-        function startBeat() {
-            initAudio();
-
-            if (isPlaying) {
-                clearInterval(interval);
-                isPlaying = false;
-                document.getElementById('play').textContent = '▶ PLAY / STOP';
-                return;
-            }
-
-            isPlaying = true;
-            document.getElementById('play').textContent = '⏹ STOP';
-
-            let step = 0;
-            const beatInterval = (60 / tempo) * 1000 / 4;
-
-            interval = setInterval(() => {
-                if (step % 4 === 0) playDrum('kick');
-                if (step % 8 === 4) playDrum('snare');
-                if (step % 2 === 1) playDrum('hihat');
-                if (step % 8 === 2 || step % 8 === 6) playDrum('clap');
-
-                step = (step + 1) % 16;
-            }, beatInterval);
-        }
-
-        // Tempo değişimi
-        tempoSlider.addEventListener('input', () => {
-            tempo = parseInt(tempoSlider.value);
-            tempoValue.textContent = tempo;
-            
-            // Ritim çalıyorsa yeniden başlat
-            if (isPlaying) {
-                const wasPlaying = true;
-                startBeat(); // stop
-                setTimeout(() => startBeat(), 50); // restart with new tempo
-            }
-        });
-
-        document.getElementById('play').addEventListener('click', startBeat);
-    </script>
-</body>
-</html>
+                    osc.frequency.setValueAtTime(160, now);
+                   
