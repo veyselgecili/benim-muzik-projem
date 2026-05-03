@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Basit Beat Makinesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #111;
+            color: white;
+            padding: 20px;
+        }
+        h1 { color: #1ed760; }
+        .drum {
+            font-size: 50px;
+            padding: 20px;
+            margin: 10px;
+            width: 100px;
+            height: 100px;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+        .kick { background: #ff4444; }
+        .snare { background: #ffaa00; }
+        .hihat { background: #44ccff; }
+        button#play {
+            font-size: 24px;
+            padding: 15px 40px;
+            margin: 20px;
+            background: #1ed760;
+            color: black;
+            border: none;
+            border-radius: 50px;
+        }
+        .active {
+            box-shadow: 0 0 20px white;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>🥁 Basit Beat Makinesi</h1>
+    <p>Ritim yap ve "Play" butonuna bas</p>
+
+    <button id="play">▶ PLAY / STOP</button>
+    <br><br>
+
+    <div>
+        <button class="drum kick" onclick="playSound('kick')">KICK</button>
+        <button class="drum snare" onclick="playSound('snare')">SNARE</button>
+        <button class="drum hihat" onclick="playSound('hihat')">HI-HAT</button>
+    </div>
+
+    <script>
+        let isPlaying = false;
+        let interval;
+
+        // Ses üretme fonksiyonları
+        function playSound(type) {
+            const audio = new AudioContext();
+            const osc = audio.createOscillator();
+            const gain = audio.createGain();
+
+            if (type === 'kick') {
+                osc.frequency.setValueAtTime(150, audio.currentTime);
+                gain.gain.value = 1;
+                gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.5);
+                osc.start();
+                osc.stop(audio.currentTime + 0.5);
+            } 
+            else if (type === 'snare') {
+                osc.frequency.setValueAtTime(800, audio.currentTime);
+                gain.gain.value = 0.7;
+                gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.2);
+                osc.start();
+                osc.stop(audio.currentTime + 0.2);
+            } 
+            else if (type === 'hihat') {
+                osc.frequency.setValueAtTime(5000, audio.currentTime);
+                gain.gain.value = 0.3;
+                gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.1);
+                osc.start();
+                osc.stop(audio.currentTime + 0.1);
+            }
+        }
+
+        // Basit ritim döngüsü (4/4)
+        function startBeat() {
+            if (isPlaying) {
+                clearInterval(interval);
+                isPlaying = false;
+                document.getElementById('play').textContent = '▶ PLAY';
+                return;
+            }
+
+            isPlaying = true;
+            document.getElementById('play').textContent = '⏹ STOP';
+            
+            let step = 0;
+            interval = setInterval(() => {
+                if (step % 4 === 0) playSound('kick');     // her vuruşta kick
+                if (step % 8 === 4) playSound('snare');    // 2. ve 4. vuruşta snare
+                if (step % 2 === 0) playSound('hihat');    // her yarım vuruşta hihat
+                
+                step++;
+                if (step > 15) step = 0; // 16 adım döngü
+            }, 200); // tempo ayarı (daha hızlı istersek sayıyı küçült)
+        }
+
+        document.getElementById('play').addEventListener('click', startBeat);
+    </script>
+
+    <p><small>Butonlara basarak da ses çıkarabilirsin. Tempo değiştirmek istersen söyle.</small></p>
+</body>
+</html>
